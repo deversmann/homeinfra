@@ -1,0 +1,19 @@
+---
+- name: Pre-configure non-root user on new linux system (prior to hardening)
+  become: true
+  hosts: all
+
+  tasks:
+    - name: Create non-root user
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        state: present
+        password: "{{ ansible_user_pass | password_hash('sha512')}}"
+        groups: wheel
+
+    - name: Add authorized keys for new user
+      authorized_key:
+        user: "{{ ansible_user }}"
+        key: "{{ lookup('file', ansible_user_ssh_key_location) }}"
+
+...

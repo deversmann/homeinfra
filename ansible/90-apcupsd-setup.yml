@@ -1,0 +1,32 @@
+---
+- name: Install and enable apcupsd
+  become: true
+  hosts: ups_attached
+
+  tasks:
+    - name: Enable codeready builder repo
+      community.general.rhsm_repository:
+        name: codeready-builder-for-rhel-9-{{ ansible_architecture }}-rpms
+        state: enabled
+
+    - name: Install EPEL repo
+      ansible.builtin.dnf:
+        name: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm'
+        state: present
+
+    - name: Install apcupsd
+      ansible.builtin.dnf:
+        name: apcupsd
+        state: present
+
+    - name: Enable apcupsd service
+      ansible.builtin.systemd_service:
+        name: apcupsd
+        enabled: true
+        state: started
+
+    # subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
+    # dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm 
+    # dnf install apcupsd  # installs libusb and s-nail
+    # systemctl enable --now apcupsd
+...

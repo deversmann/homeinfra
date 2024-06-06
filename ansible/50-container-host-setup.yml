@@ -1,0 +1,40 @@
+---
+- name: Setup system as a container host
+  hosts: container_host
+
+  tasks:
+    - name: Enable root services
+      become: true
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop:
+        - podman.socket
+        - podman-restart
+
+    - name: Create rootful quadlet directory
+      become: true
+      ansible.builtin.file:
+        path: "/etc/containers/systemd/"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Enable user services
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop:
+        - podman.socket
+        - podman-restart
+
+    - name: Create rootless quadlet directory
+      ansible.builtin.file:
+        path: "~/.config/containers/systemd/"
+        state: directory
+        mode: '0755'
+
+...

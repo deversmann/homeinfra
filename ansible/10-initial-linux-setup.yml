@@ -1,0 +1,96 @@
+---
+- name: Configure new linux system
+  become: true
+  hosts: all
+
+  tasks:
+    - name: Set timezone
+      community.general.timezone:
+        name: America/Chicago
+
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Update hosts file
+      when: ansible_default_ipv4 is defined
+      ansible.builtin.lineinfile:
+        dest: /etc/hosts
+        line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }}"
+    # !#! need something for FQDN?
+
+    - name: Create persistent log directory
+      ansible.builtin.file:
+        path: "/var/log/journal/"
+        state: directory
+        mode: '0755'
+
+    - name: Flush journald
+      ansible.builtin.command:
+        cmd: journalctl --flush
+
+    - name: Register system if RHEL
+      community.general.redhat_subscription:
+        state: present
+        username: "{{ rhsm_user }}"
+        password: "{{ rhsm_pass }}"
+      when: ansible_distribution == 'RedHat'
+
+    - name: Upgrade all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+
+    - name: Cockpit
+      block:
+        - name: Install Cockpit
+          ansible.builtin.dnf:
+            name: cockpit
+            state: latest
+
+        - name: Enable Cockpit service
+          ansible.builtin.systemd_service:
+            name: cockpit.socket
+            enabled: true
+            state: started
+
+        - name: Open Cockpit firewall port
+          ansible.posix.firewalld:
+            service: cockpit
+            state: enabled
+            permanent: true
+            immediate: true
+      when: "{{ enable_cockpit }}"
+
+    - name: Setup sudoers
+      community.general.sudoers:
+        name: "{{ ansible_user }}"
+        state: present
+        user: "{{ ansible_user }}"
+        commands: ALL
+        runas: ALL
+        nopassword: true
+
+    - name: Secure sshd
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - regexp: "^PermitRootLogin"
+          line: "PermitRootLogin no"
+        - regexp: "^PasswordAuthentication"
+          line: "PasswordAuthentication no"
+        - regexp: "^AddressFamily"
+          line: "AddressFamily inet"
+      notify: Restart sshd
+
+    # !#! fail2ban?
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
+...

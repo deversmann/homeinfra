@@ -1,0 +1,19 @@
+[prd]
+malastare ansible_host=192.168.50.50
+yavin ansible_host=gaming.eversmann.xyz
+
+[vpn_public]
+yavin
+
+[vpn_private]
+malastare
+
+[vpn:children]
+vpn_public
+vpn_private
+
+[container_host]
+malastare
+
+[ups_attached]
+malastare
