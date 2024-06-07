@@ -1,0 +1,15 @@
+# magicmirror.container
+[Container]
+ContainerName=magicmirror
+Exec=npm run server
+Image=docker.io/karsten13/magicmirror:v2.27.0
+PublishPort=8080:8080
+Volume=/home/damien/magicmirror/volumes/config:/opt/magic_mirror/config:z
+Volume=/home/damien/magicmirror/volumes/modules:/opt/magic_mirror/modules:z
+Volume=/home/damien/magicmirror/volumes/css:/opt/magic_mirror/css:z
+
+[Install]
+WantedBy=default.target
+
+[Service]
+Restart=always

@@ -1,0 +1,30 @@
+# semaphore.container
+[Install]
+WantedBy=default.target
+
+[Unit]
+Requires=semaphore-postgresql.service
+After=semaphore-postgresql.service
+
+[Container]
+ContainerName=semaphore
+Environment=SEMAPHORE_DB=semaphore 
+Environment=SEMAPHORE_DB_USER=semaphore 
+Environment=SEMAPHORE_DB_HOST=semaphore-postgresql 
+Environment=SEMAPHORE_DB_PORT=5432 
+Environment=SEMAPHORE_DB_DIALECT=postgres 
+Environment=SEMAPHORE_PLAYBOOK_PATH=/tmp/semaphore/ 
+Environment=SEMAPHORE_ADMIN=admin 
+Environment=SEMAPHORE_ADMIN_EMAIL=admin@localhost 
+Environment=SEMAPHORE_ADMIN_NAME=Semaphore Admin 
+Environment=SEMAPHORE_ADMIN_PASSWORD=admin 
+Environment=SEMAPHORE_LDAP_ACTIVATED=no
+Image=docker.io/semaphoreui/semaphore:v2.9.112
+Network=semaphore.network
+PublishPort=3030:3000
+Secret=semaphore-db-pass,type=env,target=SEMAPHORE_DB_PASS
+Secret=semaphore-access-key-encryption,type=env,target=SEMAPHORE_ACCESS_KEY_ENCRYPTION
+Secret=semaphore-admin-password,type=env,target=SEMAPHORE_ADMIN_PASSWORD
+[Service]
+Restart=always
+

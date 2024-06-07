@@ -1,0 +1,16 @@
+# nginx-proxy-manager.container
+[Container]
+ContainerName=nginx-proxy-manager
+Image=docker.io/jc21/nginx-proxy-manager:2.11.2
+PublishPort=9080:80
+PublishPort=9443:443
+PublishPort=9081:81
+Volume=/home/damien/nginx-proxy-manager/volumes/data:/data:z
+Volume=/home/damien/nginx-proxy-manager/volumes/letsencrypt:/etc/letsencrypt:z
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
+
