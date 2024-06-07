@@ -7,14 +7,15 @@ Migrating here to new infra project.  Original homelab notes below for now
 This is my repository for my Homelab escapades.  For now, it's mostly for me to store/backup stuff and keep some notes.  Maybe it'll become useful for teaching and learning for others eventually.
 
 ### Current Services:
+*Strikethru items are temporarily decommissioned due to hardware crash*
 - RHEL Box with KVM, Podman and Cockpit
 - Crafty with 3 Minecraft servers
-- PiHole
-- Uptime Kuma
+- ~~PiHole~~
+- ~~Uptime Kuma~~
 - VPS with WireGuard Tunnel
-- Postgresql db (maybe switching to MariaDB or a db install per app in containers or pods)
-- Semaphore (testing still)
-- Homepage dashboard
+- ~~Postgresql db (maybe switching to MariaDB or a db install per app in containers or pods)~~
+- ~~Semaphore (testing still)~~
+- ~~Homepage dashboard~~
 - TrueNAS
 
 ### Planned Services:
