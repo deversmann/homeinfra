@@ -1,32 +1,50 @@
 # Home Infrastructure
+
+Migrating here to new infra project.  Original homelab notes below for now
+
 ---
 
-#### Notes
+This is my repository for my Homelab escapades.  For now, it's mostly for me to store/backup stuff and keep some notes.  Maybe it'll become useful for teaching and learning for others eventually.
 
-Original shell commands that were used to come up with some of the processes in the ansible playbooks:
+### Current Services:
+- RHEL Box with KVM, Podman and Cockpit
+- Crafty with 3 Minecraft servers
+- PiHole
+- Uptime Kuma
+- VPS with WireGuard Tunnel
+- Postgresql db (maybe switching to MariaDB or a db install per app in containers or pods)
+- Semaphore (testing still)
+- Homepage dashboard
+- TrueNAS
 
-``` shell
-sudo visudo /etc/sudoers.d/damien
-sudo mkdir /var/log/journal
-sudo journalctl --flush
-sudo subscription-manager register
-sudo dnf update
-sudo systemctl enable --now cockpit.socket
-sudo systemctl enable --now podman.socket
-sudo systemctl enable --now podman-restart
-sudo loginctl enable-linger damien
+### Planned Services:
+- Redundant PiHole
+- Reverse Proxy (Nginx Proxy Manager probably)
+- Gitea (maybe with clones/backups of my GitHub repos)
 
-systemctl enable --now podman-restart
-systemctl enable --now podman.socket
-mkdir -p .config/containers/systemd
-vi /home/damien/.config/containers/systemd/crafty.container
-mkdir -p /home/damien/crafty/volumes/{backups,logs,servers,config,import}/
-systemctl --user daemon-reload
-systemctl --user start crafty
+### Setup Notes:
+[Moved here](docs/overview.md)
 
-sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
-sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-sudo dnf install apcupsd  # installs libusb and s-nail
-sudo systemctl enable --now apcupsd
+### ToDos
+- [ ] set up alerts in Uptime-Kuma
+- [ ] build ansible roles and playbooks
+  - [ ] setup
+  - [ ] startup
+  - [ ] shutdown
+  - [ ] backup
+- [ ] Build lab diagram
+- [ ] podman secrets for passwords
+- [ ] Internal DNS (including actual domain)
 
-```
+---
+
+### References
+- https://wiki.craftycontrol.com/en/4/docs/API%20V2
+- https://www.procustodibus.com/blog/2022/09/wireguard-port-forward-from-internet/
+- https://github.com/mochman/Bypass_CGNAT
+- https://crates.io/crates/podlet
+- https://www.redhat.com/sysadmin/multi-container-application-podman-quadlet
+- https://www.redhat.com/sysadmin/podman-kubernetes-secrets
+- https://serverfault.com/questions/1101002/wireguard-client-addition-without-restart
+- https://www.jeroenbaten.nl/the-complete-guide-to-setting-up-a-multi-peer-wireguard-vpn/
+- 
