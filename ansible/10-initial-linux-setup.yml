@@ -62,6 +62,18 @@
             immediate: true
       when: "{{ enable_cockpit }}"
 
+    - name: Create non-root user
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        state: present
+        password: "{{ ansible_user_pass | password_hash('sha512')}}"
+        groups: wheel
+
+    - name: Add authorized keys for new user
+      authorized_key:
+        user: "{{ ansible_user }}"
+        key: "{{ lookup('file', ansible_user_ssh_key_location) }}"
+
     - name: Setup sudoers
       community.general.sudoers:
         name: "{{ ansible_user }}"
