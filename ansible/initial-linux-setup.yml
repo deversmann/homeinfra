@@ -1,5 +1,7 @@
 ---
 - name: Configure new linux system
+  # If system has only root access with password run ansible-playbook command with 
+  # --extra-args "ansible_user=root" -k
   become: true
   hosts: all
 
@@ -24,10 +26,7 @@
         path: "/var/log/journal/"
         state: directory
         mode: '0755'
-
-    - name: Flush journald
-      ansible.builtin.command:
-        cmd: journalctl --flush
+      notify: Flush journald
 
     - name: Register system if RHEL
       community.general.redhat_subscription:
@@ -60,25 +59,26 @@
             state: enabled
             permanent: true
             immediate: true
-      when: "{{ enable_cockpit }}"
+      when: enable_cockpit
 
     - name: Create non-root user
       ansible.builtin.user:
-        name: "{{ ansible_user }}"
+        name: "{{ nonroot_user }}"
         state: present
-        password: "{{ ansible_user_pass | password_hash('sha512')}}"
         groups: wheel
+        password: "{{ nonroot_user_pass | password_hash('sha512')}}"
+        update_password: on_create
 
     - name: Add authorized keys for new user
-      authorized_key:
-        user: "{{ ansible_user }}"
-        key: "{{ lookup('file', ansible_user_ssh_key_location) }}"
+      ansible.posix.authorized_key:
+        user: "{{ nonroot_user }}"
+        key: "{{ lookup('file', nonroot_user_ssh_key_location) }}"
 
     - name: Setup sudoers
       community.general.sudoers:
-        name: "{{ ansible_user }}"
+        name: "{{ nonroot_user }}"
         state: present
-        user: "{{ ansible_user }}"
+        user: "{{ nonroot_user }}"
         commands: ALL
         runas: ALL
         nopassword: true
@@ -104,5 +104,9 @@
       ansible.builtin.service:
         name: sshd
         state: restarted
+
+    - name: Flush journald
+      ansible.builtin.command:
+        cmd: journalctl --flush
 
 ...
