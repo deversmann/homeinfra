@@ -1,3 +1,4 @@
 .vscode/
 scratch.txt
-reports
+reports/
+playground.yml
