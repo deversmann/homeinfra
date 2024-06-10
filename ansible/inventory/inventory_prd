@@ -1,5 +1,6 @@
 [prd]
 malastare ansible_host=192.168.50.50
+alderaan ansible_host=192.168.50.30
 yavin ansible_host=gaming.eversmann.xyz
 
 [vpn_public]
@@ -14,6 +15,7 @@ vpn_private
 
 [container_host]
 malastare
+alderaan
 
 [ups_attached]
 malastare
