@@ -1,6 +1,6 @@
 ---
 - name: Configure new linux system
-  # If system has only root access with password run ansible-playbook command with 
+  # If system has only root access with password run ansible-playbook command with
   # --extra-args "ansible_user=root" -k
   become: true
   hosts: all
@@ -41,6 +41,7 @@
         state: latest
 
     - name: Cockpit
+      when: enable_cockpit
       block:
         - name: Install Cockpit
           ansible.builtin.dnf:
@@ -59,14 +60,13 @@
             state: enabled
             permanent: true
             immediate: true
-      when: enable_cockpit
 
     - name: Create non-root user
       ansible.builtin.user:
         name: "{{ nonroot_user }}"
         state: present
         groups: wheel
-        password: "{{ nonroot_user_pass | password_hash('sha512')}}"
+        password: "{{ nonroot_user_pass | password_hash('sha512') }}"
         update_password: on_create
 
     - name: Add authorized keys for new user
@@ -106,7 +106,6 @@
         state: restarted
 
     - name: Flush journald
-      ansible.builtin.command:
-        cmd: journalctl --flush
-
+      ansible.builtin.command: journalctl --flush
+      changed_when: true
 ...
