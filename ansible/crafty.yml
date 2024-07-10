@@ -1,0 +1,53 @@
+---
+- name: Setup crafty container
+  hosts: alderaan
+
+  vars:
+    container_name: "crafty"
+    image: "registry.gitlab.com/crafty-controller/crafty-4:4.4.0"
+    ports:
+      - "8000:8000"
+      - "8123:8123"
+      - "8443:8443"
+      - "19132:19132/udp"
+      - "25500-25600:25500-25600"
+    volumes:
+      - "/home/damien/crafty/volumes/backups:/crafty/backups:Z"
+      - "/home/damien/crafty/volumes/logs:/crafty/logs:Z"
+      - "/home/damien/crafty/volumes/servers:/crafty/servers:Z"
+      - "/home/damien/crafty/volumes/config:/crafty/app/config:Z"
+      - "/home/damien/crafty/volumes/import:/crafty/import:Z"
+
+  tasks:
+    - name: Create directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop: "{{ volumes | map('regex_replace', ':.*', '') }}"
+
+    - name: Create quadlet file
+      containers.podman.podman_container:
+        name: "{{ container_name }}"
+        image: "{{ image }}"
+        state: quadlet
+        ports: "{{ ports }}" 
+        volumes: "{{ volumes }}"
+        # restart_policy: always
+        quadlet_options:
+          - |
+            [Install]
+            WantedBy=default.target
+            [Service]
+            Restart=always
+      notify: Restart quadlet
+
+  handlers:
+    - name: Restart quadlet
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+        name: "{{ container_name }}"
+        state: started
+        scope: user
+
+...
