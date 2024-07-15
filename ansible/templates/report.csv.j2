@@ -1,0 +1,4 @@
+Hostname,Default IP,Default MAC,All IPs,OS Distro,OS Version,Kernel
+{% for host in ansible_play_hosts %}
+{{ host }},{{ hostvars[host].ansible_default_ipv4.address }},{{ hostvars[host].ansible_default_ipv4.macaddress }},"{{ hostvars[host].ansible_all_ipv4_addresses|join(',') }}",{{ hostvars[host].ansible_distribution }},{{ hostvars[host].ansible_distribution_version }},"{{ hostvars[host].ansible_kernel }}"
+{% endfor %}
