@@ -3,6 +3,19 @@
   hosts: container_host
 
   tasks:
+    - name: Ensure correct packages are installed
+      become: true
+      ansible.builtin.dnf:
+        name: '@Container Management'
+        state: present
+
+    - name: Ensure correct Cockpit packages are installed if necessary
+      when: enable_cockpit
+      become: true
+      ansible.builtin.dnf:
+        name: cockpit-podman
+        state: present
+
     - name: Enable root services
       become: true
       ansible.builtin.systemd_service:
