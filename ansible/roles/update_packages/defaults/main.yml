@@ -1,0 +1,6 @@
+---
+# defaults file for update_packages
+
+update_packages_skip_reboot: false
+
+...

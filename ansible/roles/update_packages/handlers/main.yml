@@ -1,0 +1,15 @@
+---
+# handlers file for update_packages
+
+- name: Reboot if not overridden
+  when: not update_packages_skip_reboot
+  ansible.builtin.reboot:
+  listen: "Reboot requested"
+
+- name: Message if reboot overridden
+  when: update_packages_skip_reboot
+  ansible.builtin.debug:
+    msg: "Reboot requested for host, but overridden by configuration"
+  listen: "Reboot requested"
+
+...
