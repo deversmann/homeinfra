@@ -1,0 +1,6 @@
+---
+
+# rebooting vm hosts automatically on update can be problematic
+update_packages_skip_reboot: true
+
+...
