@@ -36,9 +36,10 @@
       when: ansible_distribution == 'RedHat'
 
     - name: Upgrade all packages
-      ansible.builtin.dnf:
-        name: "*"
-        state: latest
+      ansible.builtin.include_role:
+        name: update_packages
+      vars:
+        update_packages_skip_reboot: false
 
     - name: Cockpit
       when: enable_cockpit

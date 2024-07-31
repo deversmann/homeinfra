@@ -3,19 +3,7 @@
   become: true
   hosts: all
 
-  tasks:
-    - name: Upgrade all packages
-      ansible.builtin.dnf:
-        name: "*"
-        state: latest
+  roles:
+    - role: update_packages
 
-    - name: Check if reboot is required
-      ansible.builtin.command: dnf needs-restarting -r
-      register: result
-      changed_when: result.rc == 1
-      failed_when: false
-      notify: Reboot required
-
-  handlers:
-    - name: Reboot required
-      ansible.builtin.reboot:
+...
