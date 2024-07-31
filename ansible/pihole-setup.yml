@@ -1,0 +1,98 @@
+---
+- name: Setup Pi-Hole
+  hosts: pi_hole
+  become: true
+
+  tasks:
+    - name: Upgrade all packages
+      ansible.builtin.include_role:
+        name: update_packages
+      vars:
+        update_packages_skip_reboot: false
+
+    - name: Deactivate SELINUX
+      ansible.posix.selinux:
+        policy: targeted
+        state: permissive
+
+    - name: Set firewall rules for default zone
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        state: enabled
+        permanent: true
+      loop:
+        - http
+        - dns
+        - dhcp
+        - dhcpv6
+      notify: Reload firewalld
+
+    - name: Add firewall zone for ftl
+      ansible.posix.firewalld:
+        zone: ftl
+        state: present
+        permanent: true
+      notify: Reload firewalld
+        
+    - name: Add loopback to firewall zone for ftl
+      ansible.posix.firewalld:
+        zone: ftl
+        interface: lo
+        state: enabled
+        permanent: true
+      notify: Reload firewalld
+        
+    - name: Set firewall rules for zone ftl
+      ansible.posix.firewalld:
+        zone: ftl
+        port: 4711/tcp
+        state: enabled
+        permanent: true
+      notify: Reload firewalld
+
+    - name: Create config dir /etc/pihole
+      ansible.builtin.file:
+        path: /etc/pihole
+        mode: '0775'
+        state: directory
+
+    - name: Generate config file /etc/pihole/setupVars.conf 644 webpassword = webpassword | hash('sha256') | hash('sha256')
+      ansible.builtin.template:
+        src: setupVars.conf.j2
+        dest: /etc/pihole/setupVars.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Create temporary directory for installer
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: ".pihole"
+      register: temp_dir
+
+    - name: Download pihole installer
+      ansible.builtin.get_url:
+        url: https://install.pi-hole.net
+        dest: "{{ temp_dir.path }}/basic-install.sh"
+        mode: '0755'
+
+    - name: Run installer with PIHOLE_SKIP_OS_CHECK=true and --unattended 
+      ansible.builtin.shell:
+        cmd: "PIHOLE_SKIP_OS_CHECK=true {{ temp_dir.path }}/basic-install.sh --unattended"
+      args:
+        executable: bash
+        creates: /usr/local/bin/pihole
+      notify: Restart pihole
+
+  handlers:
+    - name: Reload firewalld
+      ansible.builtin.systemd_service:
+        name: firewalld
+        state: reloaded
+
+    - name: Restart pihole
+      ansible.builtin.command:
+        cmd: "pihole restartdns"
+      changed_when: false
+
+...
