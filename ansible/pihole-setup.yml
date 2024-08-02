@@ -63,6 +63,7 @@
         owner: root
         group: root
         mode: '0644'
+        force: false
 
     - name: Create temporary directory for installer
       ansible.builtin.tempfile:
