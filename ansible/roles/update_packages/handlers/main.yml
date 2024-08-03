@@ -1,6 +1,11 @@
 ---
 # handlers file for update_packages
 
+- name: List changes
+  ansible.builtin.debug:
+    msg: "{{ update_output.results }}"
+  listen: "Packages updated"
+
 - name: Reboot if not overridden
   when: not update_packages_skip_reboot
   ansible.builtin.reboot:

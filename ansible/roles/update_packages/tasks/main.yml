@@ -5,6 +5,8 @@
   ansible.builtin.dnf:
     name: "*"
     state: latest
+  register: update_output
+  notify: "Packages updated"
 
 - name: Check if reboot is requested
   ansible.builtin.command: dnf needs-restarting -r
