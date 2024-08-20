@@ -1,0 +1,61 @@
+---
+- name: Setup orbital sync
+  hosts: malastare
+
+  vars:
+    container_name: "orbital-sync"
+    secret_label_prefix: "{{ container_name }}-password"
+    pihole_group: pihole
+    image: "ghcr.io/mattwebbio/orbital-sync:latest"
+    environments_dict: | # creates an entry for each member of the pihole group with the 0th being primary
+      {% set res = dict() -%}
+      {%- for host in groups[pihole_group] -%}
+        {%- set ignored = res.update({("PRIMARY_HOST_BASE_URL" if loop.index0==0 else "SECONDARY_HOSTS_" + loop.index0|string + "_BASE_URL"):
+            "http://" + hostvars[host].ansible_host}) -%}
+      {%- endfor %}
+      {{ res }}
+    secrets_list: | # creates an entry for each member of the pihole group with the 0th being primary
+      {% set res = [] -%}
+      {%- for host in groups[pihole_group] -%}
+        {%- set ignored = res.append(secret_label_prefix + loop.index0|string + ",type=env,target=" 
+            + ("PRIMARY_HOST_PASSWORD" if loop.index0==0 else "SECONDARY_HOSTS_" + loop.index0|string + "_PASSWORD")) -%}
+      {%- endfor %}
+      {{ res }}
+
+  tasks:
+    - name: Create container secrets
+      containers.podman.podman_secret:
+        name: "{{ secret_label_prefix }}{{ idx }}"
+        data: "{{ hostvars[item].pihole_pass }}"
+        state: present
+      loop: "{{ groups[pihole_group] }}"
+      loop_control:
+        index_var: idx
+
+    - name: Create quadlet file
+      containers.podman.podman_container:
+        name: "{{ container_name }}"
+        image: "{{ image }}"
+        env: "{{ environments_dict }}"
+        secrets: "{{ secrets_list }}"
+        state: quadlet
+        # restart_policy: always
+        quadlet_options:
+          - AutoUpdate=registry
+          - |
+            [Install]
+            WantedBy=default.target
+          - |
+            [Service]
+            Restart=always
+      notify: Restart quadlet
+
+  handlers:
+    - name: Restart quadlet
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+        name: "{{ container_name }}"
+        state: started
+        scope: user
+
+...
