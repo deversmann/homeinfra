@@ -1,10 +1,10 @@
 ---
 - name: Setup crafty container
-  hosts: alderaan
+  hosts: malastare
 
   vars:
     container_name: "crafty"
-    image: "registry.gitlab.com/crafty-controller/crafty-4:4.4.0"
+    image: "registry.gitlab.com/crafty-controller/crafty-4:latest"
     ports:
       - "8000:8000"
       - "8123:8123"
@@ -20,10 +20,14 @@
 
   tasks:
     - name: Create directories
+      become: true
+      become_method: containers.podman.podman_unshare
       ansible.builtin.file:
         path: "{{ item }}"
         state: directory
         mode: '0755'
+        owner: 1000
+        group: 0
       loop: "{{ volumes | map('regex_replace', ':.*', '') }}"
 
     - name: Create quadlet file
@@ -35,9 +39,11 @@
         volumes: "{{ volumes }}"
         # restart_policy: always
         quadlet_options:
+          - AutoUpdate=registry
           - |
             [Install]
             WantedBy=default.target
+          - |
             [Service]
             Restart=always
       notify: Restart quadlet
