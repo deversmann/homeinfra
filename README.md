@@ -7,32 +7,36 @@ Migrating here to new infra project.  Original homelab notes below for now
 This is my repository for my Homelab escapades.  For now, it's mostly for me to store/backup stuff and keep some notes.  Maybe it'll become useful for teaching and learning for others eventually.
 
 ### Current Services:
-*Strikethru items are temporarily decommissioned due to hardware crash*
+- Ubiquiti UDM-SE with custome DNS
 - RHEL Box with KVM, Podman and Cockpit
-- Crafty with 3 Minecraft servers
-- ~~PiHole~~
-- ~~Uptime Kuma~~
-- VPS with WireGuard Tunnel
-- ~~Postgresql db (maybe switching to MariaDB or a db install per app in containers or pods)~~
-- ~~Semaphore (testing still)~~
-- ~~Homepage dashboard~~
+  - WireGuard tunnel to VPS for external access to games
+  - NginxProxyManager with Let'sEncrypt for Reverse Proxy and Certificates
+  - Crafty with 3 Minecraft servers
+  - Uptime Kuma
+  - Homepage dashboard
+  - Gitea
+    - PostgreSQL DB
+  - Semaphore (testing still)
+    - PostgreSQL DB
+- VPS 
+  - WireGuard tunnel to RHEL Box for external access to games
 - TrueNAS
 
 ### Planned Services:
-- Redundant PiHole
-- Reverse Proxy (Nginx Proxy Manager probably)
-- Gitea (maybe with clones/backups of my GitHub repos)
+- HomeAssistant
 
 ### Setup Notes:
 [Moved here](docs/overview.md)
 
 ### ToDos
 - [ ] set up alerts in Uptime-Kuma
+- [ ] clones/backups of my GitHub repos in Gitea
 - [ ] build ansible roles and playbooks
   - [ ] setup
   - [ ] startup
   - [ ] shutdown
   - [ ] backup
+  - [ ] Update
 - [ ] Build lab diagram
 - [ ] podman secrets for passwords
 - [ ] Internal DNS (including actual domain)
