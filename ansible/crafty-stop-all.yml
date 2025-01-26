@@ -1,0 +1,22 @@
+---
+- name: Stop All Crafty Servers
+  become: false
+  hosts: container_host
+  gather_facts: false
+
+  tasks:
+    - name: List
+      ansible.builtin.include_role:
+        name: crafty
+        tasks_from: list.yml
+
+    - name: Stop all
+      ansible.builtin.include_role:
+        name: crafty
+        tasks_from: server_control.yml
+      loop: "{{ crafty_server_ids }}"
+      vars:
+        crafty_server_id: "{{ item }}"
+        crafty_server_running: false
+
+...
