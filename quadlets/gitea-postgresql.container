@@ -1,0 +1,17 @@
+# gitea-postgresql.container
+[Install]
+WantedBy=default.target
+
+[Container]
+ContainerName=gitea-postgresql
+Environment=POSTGRESQL_USER=gitea
+Environment=POSTGRESQL_DATABASE=gitea
+Image=registry.redhat.io/rhel9/postgresql-15:1
+Network=gitea.network
+Secret=gitea-db-pass,type=env,target=POSTGRESQL_PASSWORD
+Volume=/home/damien/gitea/volumes/postgresql-data:/var/lib/pgsql/data:Z
+AutoUpdate=registry
+
+[Service]
+Restart=always
+

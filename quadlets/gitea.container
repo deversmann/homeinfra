@@ -1,0 +1,26 @@
+# gitea.container
+[Install]
+WantedBy=default.target
+
+[Unit]
+Requires=gitea-postgresql.service
+After=gitea-postgresql.service
+
+[Container]
+ContainerName=gitea
+Environment=GITEA__database__NAME=gitea 
+Environment=GITEA__database__USER=gitea 
+Environment=GITEA__database__HOST=gitea-postgresql:5432 
+Environment=GITEA__database__DB_TYPE=postgres 
+Image=docker.io/gitea/gitea:latest-rootless
+Network=gitea.network
+PublishPort=2222:2222
+PublishPort=3002:3000
+Secret=gitea-db-pass,type=env,target=GITEA__database__PASSWD
+Volume=/home/damien/gitea/volumes/data:/var/lib/gitea:Z
+Volume=/home/damien/gitea/volumes/config:/etc/gitea:Z
+AutoUpdate=registry
+
+[Service]
+Restart=always
+
