@@ -1,9 +1,9 @@
 [prd]
-malastare ansible_host=192.168.50.50
-alderaan ansible_host=192.168.50.30
+malastare ansible_host=10.11.1.10
+; alderaan ansible_host=192.168.50.30
 yavin ansible_host=gaming.eversmann.xyz
-corellia ansible_host=192.168.50.10
-dagobah ansible_host=192.168.50.11
+; corellia ansible_host=192.168.50.10
+; dagobah ansible_host=192.168.50.11
 
 [vpn_public]
 yavin
@@ -17,15 +17,13 @@ vpn_private
 
 [container_host]
 malastare
-alderaan
 
 [ups_attached]
 malastare
 
-[vm_host]
-malastare
-alderaan
+; [vm_host]
+; malastare
 
-[pihole]
-corellia
-dagobah
+; [pihole]
+; corellia
+; dagobah
