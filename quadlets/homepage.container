@@ -4,11 +4,14 @@ WantedBy=default.target
 
 [Container]
 ContainerName=homepage
-Environment=PUID=1000 PGID=1000
-Image=ghcr.io/gethomepage/homepage:v0.8.13
+Environment=PUID=1000 
+Environment=PGID=1000
+Image=ghcr.io/gethomepage/homepage:latest
 PublishPort=3000:3000
 Volume=/home/damien/homepage/volumes/config:/app/config:Z
+AutoUpdate=registry
 
 [Service]
 Restart=always
+
 
