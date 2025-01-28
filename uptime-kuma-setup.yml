@@ -1,43 +1,19 @@
 ---
-- name: Setup crafty container
+- name: Setup uptime-kuma container
   hosts: alderaan
 
   vars:
-    container_name: "crafty"
-    image: "registry.gitlab.com/crafty-controller/crafty-4:latest"
+    container_name: "uptime-kuma"
+    image: "docker.io/louislam/uptime-kuma:latest"
     ports:
-      - host: 8000
-        container: 8000
-        proto: tcp
-        firewall: true
-      - host: 8123
-        container: 8123
-        proto: tcp
-        firewall: true
-      - host: 8443
-        container: 8443
-        proto: tcp
-        firewall: true
-      - host: 19132
-        container: 19132
-        proto: udp
-        firewall: true
-      - host: 25500-25600
-        container: 25500-25600
+      - host: 3001
+        container: 3001
         proto: tcp
         firewall: true
     volume_root: "/home/damien/{{container_name}}/volumes"
     volumes:
-      - host: "/home/damien/crafty/volumes/backups"
-        container: "/crafty/backups"
-      - host: "/home/damien/crafty/volumes/logs"
-        container: "/crafty/logs"
-      - host: "/home/damien/crafty/volumes/servers"
-        container: "/crafty/servers"
-      - host: "/home/damien/crafty/volumes/config"
-        container: "/crafty/app/config"
-      - host: "/home/damien/crafty/volumes/import"
-        container: "/crafty/import"
+      - host: "/home/damien/uptime-kuma/volumes/data"
+        container: "/app/data"
 
   tasks:
     - name: Create directory root
@@ -52,8 +28,8 @@
       ansible.builtin.file:
         path: "{{ item.host }}"
         state: directory
-        mode: '2775'
-        owner: 1000
+        mode: '0755'
+        owner: 0
         group: 0
       loop: "{{ volumes }}"
 
