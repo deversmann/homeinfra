@@ -1,42 +1,62 @@
 ---
 - name: Setup crafty container
-  hosts: malastare
+  hosts: alderaan
 
   vars:
     container_name: "crafty"
     image: "registry.gitlab.com/crafty-controller/crafty-4:latest"
     ports:
-      - "8000:8000"
-      - "8123:8123"
-      - "8443:8443"
-      - "19132:19132/udp"
-      - "25500-25600:25500-25600"
+      - host: 8000
+        container: 8000
+        proto: tcp
+        firewall: true
+      - host: 8123
+        container: 8123
+        proto: tcp
+        firewall: true
+      - host: 8443
+        container: 8443
+        proto: tcp
+        firewall: true
+      - host: 19132
+        container: 19132
+        proto: udp
+        firewall: true
+      - host: 25500-25600
+        container: 25500-25600
+        proto: tcp
+        firewall: true
     volumes:
-      - "/home/damien/crafty/volumes/backups:/crafty/backups:Z"
-      - "/home/damien/crafty/volumes/logs:/crafty/logs:Z"
-      - "/home/damien/crafty/volumes/servers:/crafty/servers:Z"
-      - "/home/damien/crafty/volumes/config:/crafty/app/config:Z"
-      - "/home/damien/crafty/volumes/import:/crafty/import:Z"
+      - host: "/home/damien/crafty/volumes/backups"
+        container: "/crafty/backups"
+      - host: "/home/damien/crafty/volumes/logs"
+        container: "/crafty/logs"
+      - host: "/home/damien/crafty/volumes/servers"
+        container: "/crafty/servers"
+      - host: "/home/damien/crafty/volumes/config"
+        container: "/crafty/app/config"
+      - host: "/home/damien/crafty/volumes/import"
+        container: "/crafty/import"
 
   tasks:
     - name: Create directories
       become: true
       become_method: containers.podman.podman_unshare
       ansible.builtin.file:
-        path: "{{ item }}"
+        path: "{{ item.host }}"
         state: directory
-        mode: '0755'
+        mode: '2775'
         owner: 1000
         group: 0
-      loop: "{{ volumes | map('regex_replace', ':.*', '') }}"
+      loop: "{{ volumes }}"
 
     - name: Create quadlet file
       containers.podman.podman_container:
         name: "{{ container_name }}"
         image: "{{ image }}"
         state: quadlet
-        ports: "{{ ports }}" 
-        volumes: "{{ volumes }}"
+        ports: "{{ ports | json_query('[].[host,container,proto]') | map('join','/') | map('regex_replace','/',':',count=1) }}" 
+        volumes: "{{ volumes | json_query('[].[host,container]') | map('join',':') | map('regex_replace','^(.*)$','\\1:Z') }}"
         # restart_policy: always
         quadlet_options:
           - AutoUpdate=registry
@@ -47,6 +67,28 @@
             [Service]
             Restart=always
       notify: Restart quadlet
+
+    - name: Create firewall service
+      ansible.builtin.include_role:
+        name: linux-system-roles.firewall
+        apply:
+          become: true
+      vars:
+        firewall:
+          - service: "{{ container_name }}"
+            short: "{{ container_name }}"
+            description: "Ports for container: {{ container_name }}"
+            port: "{{ ports | selectattr('firewall') | json_query('[].[host,proto]') | map('join','/') }}"
+            state: present
+            permanent: true
+
+    - name: Activate firewall service
+      become: true
+      ansible.posix.firewalld:
+        service: "{{ container_name }}"
+        state: enabled
+        permanent: true
+        immediate: true
 
   handlers:
     - name: Restart quadlet
