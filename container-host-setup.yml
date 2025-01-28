@@ -21,10 +21,16 @@
       ansible.builtin.systemd_service:
         name: "{{ item }}"
         enabled: true
-        state: started
       loop:
-        - podman.socket
-        - podman-restart
+        - podman.service
+        - podman-restart.service
+
+    - name: Start root socket
+      become: true
+      ansible.builtin.systemd_service:
+        name: podman.socket
+        enabled: true
+        state: started
 
     - name: Create rootful quadlet directory
       become: true
@@ -46,9 +52,17 @@
         name: "{{ item }}"
         enabled: true
         state: started
+        scope: user
       loop:
-        - podman.socket
-        - podman-restart
+        - podman.service
+        - podman-restart.service
+
+    - name: Start user services
+      ansible.builtin.systemd_service:
+        name: podman.socket
+        enabled: true
+        state: started
+        scope: user
 
     - name: Create rootless quadlet directory
       ansible.builtin.file:
