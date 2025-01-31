@@ -1,43 +1,29 @@
 ---
-- name: Setup crafty container
+- name: Setup nginx-proxy-manager container
   hosts: alderaan
 
   vars:
-    container_name: "crafty"
-    image: "registry.gitlab.com/crafty-controller/crafty-4:latest"
+    container_name: "nginx-proxy-manager"
+    image: "docker.io/jc21/nginx-proxy-manager:latest"
     ports:
-      - host: 8000
-        container: 8000
+      - host: 9080
+        container: 80
         proto: tcp
         firewall: true
-      - host: 8123
-        container: 8123
+      - host: 9443
+        container: 443
         proto: tcp
         firewall: true
-      - host: 8443
-        container: 8443
-        proto: tcp
-        firewall: true
-      - host: 19132
-        container: 19132
-        proto: udp
-        firewall: true
-      - host: 25500-25600
-        container: 25500-25600
+      - host: 9081
+        container: 81
         proto: tcp
         firewall: true
     volume_root: "/home/damien/{{container_name}}/volumes"
     volumes:
-      - host: "/home/damien/crafty/volumes/backups"
-        container: "/crafty/backups"
-      - host: "/home/damien/crafty/volumes/logs"
-        container: "/crafty/logs"
-      - host: "/home/damien/crafty/volumes/servers"
-        container: "/crafty/servers"
-      - host: "/home/damien/crafty/volumes/config"
-        container: "/crafty/app/config"
-      - host: "/home/damien/crafty/volumes/import"
-        container: "/crafty/import"
+      - host: "/home/damien/nginx-proxy-manager/volumes/data"
+        container: "/data"
+      - host: "/home/damien/nginx-proxy-manager/volumes/letsencrypt"
+        container: "/etc/letsencrypt"
 
   tasks:
     - name: Create directory root
@@ -52,8 +38,8 @@
       ansible.builtin.file:
         path: "{{ item.host }}"
         state: directory
-        mode: '2775'
-        owner: 1000
+        mode: '0755'
+        owner: 0
         group: 0
       loop: "{{ volumes }}"
 
@@ -93,6 +79,28 @@
       become: true
       ansible.posix.firewalld:
         service: "{{ container_name }}"
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Forward port 80
+      become: true
+      ansible.posix.firewalld:
+        port_forward:
+          - port: 80
+            proto: tcp
+            toport: 9080
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Forward port 443
+      become: true
+      ansible.posix.firewalld:
+        port_forward:
+          - port: 443
+            proto: tcp
+            toport: 9443
         state: enabled
         permanent: true
         immediate: true

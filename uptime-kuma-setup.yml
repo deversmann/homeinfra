@@ -38,7 +38,7 @@
         name: "{{ container_name }}"
         image: "{{ image }}"
         state: quadlet
-        ports: "{{ ports | json_query('[].[host,container,proto]') | map('join','/') | map('regex_replace','/',':',count=1) }}" 
+        ports: "{{ ports | json_query('[].[host,container,proto]') | map('join','/') | map('replace','/',':',1) }}" 
         volumes: "{{ volumes | json_query('[].[host,container]') | map('join',':') | map('regex_replace','^(.*)$','\\1:Z') }}"
         # restart_policy: always
         quadlet_options:
@@ -61,7 +61,7 @@
           - service: "{{ container_name }}"
             short: "{{ container_name }}"
             description: "Ports for container: {{ container_name }}"
-            port: "{{ ports | selectattr('firewall') | json_query('[].[host,proto]') | map('join','/') }}"
+            port: "{{ ports | selectattr('firewall') | json_query('[].[host,proto]') | map('join', '/') }}"
             state: present
             permanent: true
 
@@ -78,7 +78,7 @@
       ansible.builtin.systemd_service:
         daemon_reload: true
         name: "{{ container_name }}"
-        state: started
+        state: restarted
         scope: user
 
 ...
