@@ -1,0 +1,79 @@
+---
+# tasks file for container_service_setup
+- name: Create directory root
+  ansible.builtin.file:
+    path: "{{ __volume_root }}"
+    state: directory
+    mode: '0755'
+
+- name: Create directories
+  become: true
+  become_method: containers.podman.podman_unshare
+  ansible.builtin.file:
+    path: "{{ __volume_root }}/{{ item.host_dir_name }}"
+    state: directory
+    mode: "{{ item.mode }}"
+    owner: "{{ item.container_uid }}"
+    group: "{{ item.container_gid }}"
+  loop: "{{ volumes }}"
+
+- name: Create quadlet file
+  containers.podman.podman_container:
+    name: "{{ container_name }}"
+    image: "{{ image }}"
+    state: quadlet
+    ports:  |
+      {{ 
+        ports | 
+        json_query('[].[host,container,proto]') |
+        map ('join',',') |
+        map('regex_replace','^(.*),(.*),(.*)$','\1:\2/\3')
+      }}
+    volumes: |
+      {{ 
+        volumes | 
+        json_query('[].[host_dir_name,container_mnt]') | 
+        map('join',':') | 
+        map('regex_replace', '^', __volume_root + '/') |
+        map('regex_replace','$',':Z') 
+      }}
+    # restart_policy: always
+    quadlet_options:
+      - AutoUpdate=registry
+      - |
+        [Install]
+        WantedBy=default.target
+      - |
+        [Service]
+        Restart=always
+  notify: Restart quadlet
+
+- name: Create firewall service
+  ansible.builtin.include_role:
+    name: linux-system-roles.firewall
+    apply:
+      become: true
+  vars:
+    firewall:
+      - service: "{{ container_name }}"
+        short: "{{ container_name }}"
+        description: "Ports for container: {{ container_name }}"
+        port: |
+          {{ 
+            ports | 
+            selectattr('firewall') | 
+            json_query('[].[host,proto]') | 
+            map('join','/') 
+          }}
+        state: present
+        permanent: true
+
+- name: Activate firewall service
+  become: true
+  ansible.posix.firewalld:
+    service: "{{ container_name }}"
+    state: enabled
+    permanent: true
+    immediate: true
+
+...

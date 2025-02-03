@@ -1,0 +1,8 @@
+---
+# handlers file for container_service_setup
+- name: Restart quadlet
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: "{{ container_name }}"
+    state: restarted
+    scope: user

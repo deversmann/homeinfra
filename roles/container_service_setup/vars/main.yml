@@ -1,0 +1,3 @@
+---
+# vars file for container_service_setup
+__volume_root: "/home/damien/{{ container_name }}"
