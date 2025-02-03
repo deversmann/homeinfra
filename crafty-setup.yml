@@ -26,83 +26,36 @@
         container: 25500-25600
         proto: tcp
         firewall: true
-    volume_root: "/home/damien/{{container_name}}/volumes"
     volumes:
-      - host: "/home/damien/crafty/volumes/backups"
-        container: "/crafty/backups"
-      - host: "/home/damien/crafty/volumes/logs"
-        container: "/crafty/logs"
-      - host: "/home/damien/crafty/volumes/servers"
-        container: "/crafty/servers"
-      - host: "/home/damien/crafty/volumes/config"
-        container: "/crafty/app/config"
-      - host: "/home/damien/crafty/volumes/import"
-        container: "/crafty/import"
+      - host_dir_name: "backups"
+        container_mnt: "/crafty/backups"
+        mode: '2775'
+        container_uid: 1000
+        container_gid: 0
+      - host_dir_name: "logs"
+        container_mnt: "/crafty/logs"
+        mode: '2775'
+        container_uid: 1000
+        container_gid: 0
+      - host_dir_name: "servers"
+        container_mnt: "/crafty/servers"
+        mode: '2775'
+        container_uid: 1000
+        container_gid: 0
+      - host_dir_name: "config"
+        container_mnt: "/crafty/app/config"
+        mode: '2775'
+        container_uid: 1000
+        container_gid: 0
+      - host_dir_name: "import"
+        container_mnt: "/crafty/import"
+        mode: '2775'
+        container_uid: 1000
+        container_gid: 0
 
   tasks:
-    - name: Create directory root
-      ansible.builtin.file:
-        path: "{{ volume_root }}"
-        state: directory
-        mode: '0755'
-
-    - name: Create directories
-      become: true
-      become_method: containers.podman.podman_unshare
-      ansible.builtin.file:
-        path: "{{ item.host }}"
-        state: directory
-        mode: '2775'
-        owner: 1000
-        group: 0
-      loop: "{{ volumes }}"
-
-    - name: Create quadlet file
-      containers.podman.podman_container:
-        name: "{{ container_name }}"
-        image: "{{ image }}"
-        state: quadlet
-        ports: "{{ ports | json_query('[].[host,container,proto]') | map('join','/') | map('replace','/',':',1) }}" 
-        volumes: "{{ volumes | json_query('[].[host,container]') | map('join',':') | map('regex_replace','^(.*)$','\\1:Z') }}"
-        # restart_policy: always
-        quadlet_options:
-          - AutoUpdate=registry
-          - |
-            [Install]
-            WantedBy=default.target
-          - |
-            [Service]
-            Restart=always
-      notify: Restart quadlet
-
-    - name: Create firewall service
+    - name: Setup Crafty container
       ansible.builtin.include_role:
-        name: linux-system-roles.firewall
-        apply:
-          become: true
-      vars:
-        firewall:
-          - service: "{{ container_name }}"
-            short: "{{ container_name }}"
-            description: "Ports for container: {{ container_name }}"
-            port: "{{ ports | selectattr('firewall') | json_query('[].[host,proto]') | map('join', '/') }}"
-            state: present
-            permanent: true
-
-    - name: Activate firewall service
-      become: true
-      ansible.posix.firewalld:
-        service: "{{ container_name }}"
-        state: enabled
-        permanent: true
-        immediate: true
-
-  handlers:
-    - name: Restart quadlet
-      ansible.builtin.systemd_service:
-        daemon_reload: true
-        name: "{{ container_name }}"
-        state: restarted
-        scope: user
+        name: container_service_setup
 
 ...
