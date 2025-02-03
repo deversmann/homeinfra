@@ -18,70 +18,22 @@
         container: 81
         proto: tcp
         firewall: true
-    volume_root: "/home/damien/{{container_name}}/volumes"
     volumes:
-      - host: "/home/damien/nginx-proxy-manager/volumes/data"
-        container: "/data"
-      - host: "/home/damien/nginx-proxy-manager/volumes/letsencrypt"
-        container: "/etc/letsencrypt"
+      - host_dir_name: "data"
+        container_mnt: "/data"
+        mode: '0755'
+        container_uid: 0
+        container_gid: 0
+      - host_dir_name: "letsencrypt"
+        container_mnt: "/etc/letsencrypt"
+        mode: '0755'
+        container_uid: 0
+        container_gid: 0
 
   tasks:
-    - name: Create directory root
-      ansible.builtin.file:
-        path: "{{ volume_root }}"
-        state: directory
-        mode: '0755'
-
-    - name: Create directories
-      become: true
-      become_method: containers.podman.podman_unshare
-      ansible.builtin.file:
-        path: "{{ item.host }}"
-        state: directory
-        mode: '0755'
-        owner: 0
-        group: 0
-      loop: "{{ volumes }}"
-
-    - name: Create quadlet file
-      containers.podman.podman_container:
-        name: "{{ container_name }}"
-        image: "{{ image }}"
-        state: quadlet
-        ports: "{{ ports | json_query('[].[host,container,proto]') | map('join','/') | map('replace','/',':',1) }}" 
-        volumes: "{{ volumes | json_query('[].[host,container]') | map('join',':') | map('regex_replace','^(.*)$','\\1:Z') }}"
-        # restart_policy: always
-        quadlet_options:
-          - AutoUpdate=registry
-          - |
-            [Install]
-            WantedBy=default.target
-          - |
-            [Service]
-            Restart=always
-      notify: Restart quadlet
-
-    - name: Create firewall service
+    - name: Setup nginx-proxy-manager container
       ansible.builtin.include_role:
-        name: linux-system-roles.firewall
-        apply:
-          become: true
-      vars:
-        firewall:
-          - service: "{{ container_name }}"
-            short: "{{ container_name }}"
-            description: "Ports for container: {{ container_name }}"
-            port: "{{ ports | selectattr('firewall') | json_query('[].[host,proto]') | map('join', '/') }}"
-            state: present
-            permanent: true
-
-    - name: Activate firewall service
-      become: true
-      ansible.posix.firewalld:
-        service: "{{ container_name }}"
-        state: enabled
-        permanent: true
-        immediate: true
+        name: container_service_setup
 
     - name: Forward port 80
       become: true
@@ -104,13 +56,5 @@
         state: enabled
         permanent: true
         immediate: true
-
-  handlers:
-    - name: Restart quadlet
-      ansible.builtin.systemd_service:
-        daemon_reload: true
-        name: "{{ container_name }}"
-        state: restarted
-        scope: user
 
 ...
