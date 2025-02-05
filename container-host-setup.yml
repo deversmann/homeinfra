@@ -16,21 +16,16 @@
         name: cockpit-podman
         state: present
 
-    - name: Enable root services
+    - name: Start root services
       become: true
       ansible.builtin.systemd_service:
         name: "{{ item }}"
         enabled: true
+        state: started
       loop:
         - podman.service
         - podman-restart.service
-
-    - name: Start root socket
-      become: true
-      ansible.builtin.systemd_service:
-        name: podman.socket
-        enabled: true
-        state: started
+        - podman.socket
 
     - name: Create rootful quadlet directory
       become: true
@@ -47,21 +42,16 @@
         cmd: "loginctl enable-linger {{ ansible_user }}"
         creates: /var/lib/systemd/linger/{{ ansible_user }}
 
-    - name: Enable user services
+    - name: Start user services
       ansible.builtin.systemd_service:
         name: "{{ item }}"
         enabled: true
+        state: started
         scope: user
       loop:
         - podman.service
         - podman-restart.service
-
-    - name: Start user services
-      ansible.builtin.systemd_service:
-        name: podman.socket
-        enabled: true
-        state: started
-        scope: user
+        - podman.socket
 
     - name: Create rootless quadlet directory
       ansible.builtin.file:
