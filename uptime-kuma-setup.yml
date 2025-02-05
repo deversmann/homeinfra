@@ -1,6 +1,6 @@
 ---
 - name: Setup uptime-kuma container
-  hosts: alderaan
+  hosts: container_host
 
   vars:
     container_name: "uptime-kuma"

@@ -1,0 +1,25 @@
+---
+- name: Setup homepage container
+  hosts: container_host
+
+  vars:
+    container_name: "homepage"
+    image: "ghcr.io/gethomepage/homepage:latest"
+    ports:
+      - host: 3000
+        container: 3000
+        proto: tcp
+        firewall: true
+    volumes:
+      - host_dir_name: "config"
+        container_mnt: "/app/config"
+        mode: '0755'
+        container_uid: 1000
+        container_gid: 1000
+
+  tasks:
+    - name: Setup uptime-kuma container
+      ansible.builtin.include_role:
+        name: container_service_setup
+
+...

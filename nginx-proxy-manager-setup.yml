@@ -1,6 +1,6 @@
 ---
 - name: Setup nginx-proxy-manager container
-  hosts: alderaan
+  hosts: container_host
 
   vars:
     container_name: "nginx-proxy-manager"
