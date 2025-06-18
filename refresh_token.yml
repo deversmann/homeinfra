@@ -1,0 +1,18 @@
+---
+- name: Refresh ansible galaxy token
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+ 
+    - name: Make call
+      ansible.builtin.uri:
+        url: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+        method: POST
+        body_format: "form-urlencoded"
+        body:
+          grant_type: "refresh_token"
+          client_id: "cloud-services"
+          refresh_token: "{{ token }}"
+
+...
