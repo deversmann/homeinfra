@@ -33,6 +33,7 @@ This is my repository for my Homelab escapades.  For now, it's mostly for me to 
 - [ ] clones/backups of my GitHub repos in Gitea
 - [ ] build ansible roles and playbooks
   - [ ] setup
+    - [ ] quadlet creation in playbooks
   - [ ] startup
   - [ ] shutdown
   - [ ] backup

@@ -36,4 +36,5 @@ Temporary Items
 *.retry
 context/*
 .ansible/*
+ansible-navigator.log
 ansible.cfg
