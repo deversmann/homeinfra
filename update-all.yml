@@ -1,5 +1,5 @@
 ---
-- name: Update and reboot if necessary
+- name: update and reboot if necessary
   become: true
   hosts: all
 

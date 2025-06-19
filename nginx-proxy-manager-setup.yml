@@ -21,14 +21,8 @@
     volumes:
       - host_dir_name: "data"
         container_mnt: "/data"
-        mode: '0755'
-        container_uid: 0
-        container_gid: 0
       - host_dir_name: "letsencrypt"
         container_mnt: "/etc/letsencrypt"
-        mode: '0755'
-        container_uid: 0
-        container_gid: 0
 
   tasks:
     - name: Setup nginx-proxy-manager container
