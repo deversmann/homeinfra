@@ -34,3 +34,6 @@ Temporary Items
 
 # ---> Ansible
 *.retry
+context/*
+.ansible/*
+ansible.cfg
