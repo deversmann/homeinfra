@@ -12,9 +12,9 @@
   ansible.builtin.file:
     path: "{{ __volume_root }}/{{ item.host_dir_name }}"
     state: directory
-    mode: "{{ item.mode }}"
-    owner: "{{ item.container_uid }}"
-    group: "{{ item.container_gid }}"
+    mode: "{{ item.mode | default('0755') }}"
+    owner: "{{ item.container_uid | default('0') }}"
+    group: "{{ item.container_gid | default('0') }}"
   loop: "{{ volumes }}"
 
 - name: Create quadlet file
@@ -22,7 +22,7 @@
     name: "{{ container_name }}"
     image: "{{ image }}"
     state: quadlet
-    ports:  |
+    ports: |
       {{ 
         ports | 
         json_query('[].[host,container,proto]') |
@@ -50,7 +50,7 @@
 
 - name: Create firewall service
   ansible.builtin.include_role:
-    name: linux-system-roles.firewall
+    name: redhat.rhel_system_roles.firewall
     apply:
       become: true
   vars:
