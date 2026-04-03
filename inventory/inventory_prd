@@ -1,35 +1,24 @@
 [prd]
-malastare ansible_host=10.11.5.10
-yavin ansible_host=gaming.eversmann.xyz
-alderaan ansible_host=10.11.1.15
+coruscant ansible_host=10.11.1.151
+yavin ansible_host=eversmann.games
 ; tatooine ansible_host=10.11.1.20 ansible_user=root ansible_port=22222  # RO system, can't do much here
 
-[de_lab]
-corellia ansible_host=10.11.69.20
-
-[rh_lab]
-endor ansible_host=10.11.5.153 # RHEL10 Workstation
-mustafar ansible_host=10.11.5.60 # AAP on podman
-jakku ansible_host=10.11.5.50 # SNO Machine
-dagobah ansible_host=10.11.5.20
 
 [vpn_public]
 yavin
 
 [vpn_private]
-malastare
+coruscant
 
 [vpn:children]
 vpn_public
 vpn_private
 
 [container_host]
-malastare
-alderaan
-mustafar
+coruscant
 
-; [ups_attached]
-; malastare
+[ups_attached]
+; coruscant
 
-; [vm_host]
-; malastare
+[vm_host]
+; coruscant

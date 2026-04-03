@@ -1,0 +1,36 @@
+---
+- name: Setup system as a vm host
+  hosts: vm_host
+  become: true
+
+  tasks:
+    - name: Ensure correct packages are installed
+      ansible.builtin.dnf:
+        name: 
+          - '@Virtualization Hypervisor'
+          - '@Virtualization Tools'
+        state: present
+
+    - name: Ensure correct Cockpit packages are installed if necessary
+      when: enable_cockpit
+      ansible.builtin.dnf:
+        name: cockpit-machines
+        state: present
+
+    - name: Ensure network bridge is configured
+      ansible.builtin.include_role:
+        name: redhat.rhel_system_roles.network
+      vars:
+        network_connections:
+          - name: bridge0
+            type: bridge
+            interface_name: bridge0
+            state: up
+          - name: "{{ ansible_default_ipv4.interface }}"
+            interface_name: "{{ ansible_default_ipv4.interface }}"
+            type: ethernet
+            controller: bridge0
+            port_type: bridge
+            state: up
+
+...

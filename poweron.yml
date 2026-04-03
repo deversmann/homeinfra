@@ -1,0 +1,24 @@
+---
+- name: Power on servers
+  hosts: localhost
+
+  tasks:
+    - name: IPMI servers
+      community.general.ipmi_power:
+        name: "{{ item }}"
+        user: "root"
+        password: "{{ nonroot_user_pass }}"
+        state: "on"
+      loop:
+        - 10.11.42.50         # iDRAC on jakku
+        - 10.11.42.60         # iDRAC on mustafar
+
+
+    - name: WOL servers
+      community.general.wakeonlan:
+        mac: "{{ item }}"
+      loop:
+        - 18:66:da:29:27:6c   # malastare
+        - a8:a1:59:64:0e:81   # truenas
+
+...

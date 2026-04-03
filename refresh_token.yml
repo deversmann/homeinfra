@@ -14,5 +14,6 @@
           grant_type: "refresh_token"
           client_id: "cloud-services"
           refresh_token: "{{ token }}"
+      no_log: "{{ skip_logs | default(true) }}"
 
 ...

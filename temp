@@ -1,0 +1,28 @@
+
+## AAP TOKEN REFRESH
+curl https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token -d grant_type=refresh_token -d client_id="cloud-services" -d refresh_token="eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI0NzQzYTkzMC03YmJiLTRkZGQtOTgzMS00ODcxNGRlZDc0YjUifQ.eyJpYXQiOjE3NTAxOTU5NDAsImp0aSI6Ijk2MGUyYzdhLWNiNDMtNDRjMC1hNGY5LTYyZjgzMzVkMzFmZSIsImlzcyI6Imh0dHBzOi8vc3NvLnJlZGhhdC5jb20vYXV0aC9yZWFsbXMvcmVkaGF0LWV4dGVybmFsIiwiYXVkIjoiaHR0cHM6Ly9zc28ucmVkaGF0LmNvbS9hdXRoL3JlYWxtcy9yZWRoYXQtZXh0ZXJuYWwiLCJzdWIiOiI4MTAyODE0IiwidHlwIjoiT2ZmbGluZSIsImF6cCI6ImNsb3VkLXNlcnZpY2VzIiwibm9uY2UiOiJiNzc2YzI4My00Zjk1LTRlNDgtOTU5Ni1hN2NiMDZiMTYxZDEiLCJzaWQiOiIxNmY5ZmE2My0yZDBhLTRkNzAtYTQzYi03M2Y3ODE4YjNkNGQiLCJzY29wZSI6Im9wZW5pZCBhcGkuY29uc29sZSBiYXNpYyBhcGkuaWFtLnNlcnZpY2VfYWNjb3VudHMgcm9sZXMgd2ViLW9yaWdpbnMgY2xpZW50X3R5cGUucHJlX2tjMjUgb2ZmbGluZV9hY2Nlc3MifQ.GojmolcqSXCK3kXmZFevk3g_Q1PEAVWempx2YjQ1Nl8Px6pnGeKsqK61Wi7htTwEqQADbDPcsxnFubxjlQKGEw" --fail --silent --show-error --output /dev/null
+
+# Client ID 497b473a-8781-4793-8c05-135bfbef5844
+# Client secret dbPcDPgeHkF2z4TGIaP7oO59jObOOjEF
+
+
+
+## BESZEL PODMAN COMMANDS
+# https://github.com/henrygd/beszel/issues/1225
+
+podman run -d --name beszel --restart=unless-stopped -v ./data:/beszel_data:z -v ./socket:/beszel_socket:z -p 8090:8090 --security-opt label=type:container_runtime_t docker.io/henrygd/beszel
+
+podman run -d --name beszel-agent --network host --restart unless-stopped -v /run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock:ro -v ./agent_data:/var/lib/beszel-agent:z -v ./socket:/beszel_socket:z -e KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMYQfoNdlh+M83Lt7SBxUoBVo0IXtRCIh5Lt7HK9nWC" -e LISTEN=/beszel_socket/beszel.sock -e TOKEN="a0af5-51447427-9b9b4-707fb22e" -e HUB_URL="http://host.containers.internal:8090" -e DOCKER_HOST="unix:///run/user/1000/podman/podman.sock" --security-opt label=type:container_runtime_t docker.io/henrygd/beszel-agent
+
+
+
+## ROMM PODMAN COMMANDS
+#secrets first
+podman network create romm-network
+
+podman run -d --name romm-db --restart unless-stopped --secret romm-db-admin-password,type=env,target=MARIADB_ROOT_PASSWORD --secret romm-db-pass,type=env,target=MARIADB_PASSWORD -e MARIADB_USER=romm-user -e MARIADB_DATABASE=romm -v ./mysql:/var/lib/mysql:z --network romm-network mariadb:latest
+
+podman run -d --name romm --restart unless-stopped -e DB_HOST=romm-db -e DB_NAME=romm -e DB_USER=romm-user --secret romm-auth-secret-key,type=env,target=ROMM_AUTH_SECRET_KEY --secret romm-db-pass,type=env,target=DB_PASSWD -v ./resources:/romm/resources:z -v ./redis:/redis-data:z -v ./library:/romm/library:z -v ./assets:/romm/assets:z -v ./config:/romm/config -p 6080:8080 --network romm-network rommapp/romm:latest
+
+podman run -d --name romm --restart unless-stopped -e DB_HOST=romm-db -e DB_NAME=romm -e DB_USER=romm-user --secret romm-auth-secret-key,type=env,target=ROMM_AUTH_SECRET_KEY --secret romm-db-pass,type=env,target=DB_PASSWD -v ./resources:/romm/resources:z -v ./redis:/redis-data:z -v ./library:/romm/library:z -v ./assets:/romm/assets:z -v ./config:/romm/config:z -p 6080:8080 -e IGDB_CLIENT_ID=3yhfu6pzrkowrb30ap8anxb5qzb8es -e IGDB_CLIENT_SECRET=yljxi8209o04qrgivu8p92kgtwcpd4 -e RETROACHIEVEMENTS_API_KEY=tzLcgxPKwz1NFua3zcSn0ajoTM4mIn7B -e STEAMGRID_API_KEY=9c3ec149529df4b849c21eb872dcefde -e HASHEOUS_API_ENABLED=true --network romm-network rommapp/romm:latest
+

@@ -35,11 +35,11 @@
         password: "{{ rhsm_pass }}"
       when: ansible_distribution == 'RedHat'
 
-    - name: Upgrade all packages
-      ansible.builtin.include_role:
-        name: update_packages
-      vars:
-        update_packages_skip_reboot: false
+    # - name: Upgrade all packages
+    #   ansible.builtin.include_role:
+    #     name: update_packages
+    #   vars:
+    #     update_packages_skip_reboot: false
 
     - name: Cockpit
       when: enable_cockpit

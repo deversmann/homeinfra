@@ -1,0 +1,85 @@
+---
+- name: Configure Beszel Application
+  hosts: container_host
+  become: false
+
+  vars:
+    podman_create_host_directories: false
+    podman_validate_certs: false
+    podman_run_as_user: "{{ ansible_user }}"
+    podman_quadlet_specs:
+      - name: beszel
+        type: container
+        Container:
+          Image: docker.io/henrygd/beszel
+          PublishPort: "8090:8090"
+          # SecurityLabelType: container_runtime_t
+          Annotation:
+            io.podman.annotations.label=type:container_runtime_t
+          Volume: 
+            - /home/damien/beszel/data:/beszel_data:z
+            - /home/damien/beszel/socket:/beszel_socket:z
+        Service:
+          Restart: always
+        Install:
+          WantedBy: default.target
+      - name: beszel-agent
+        type: container
+        Container:
+          Image: docker.io/henrygd/beszel-agent
+          Network: host
+          # SecurityLabelType: container_runtime_t
+          Annotation:
+            io.podman.annotations.label=type:container_runtime_t
+          Volume: 
+            - /run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock:ro
+            - /home/damien/beszel/agent_data:/var/lib/beszel-agent:z
+            - /home/damien/beszel/socket:/beszel_socket:z
+          Environment: 
+            KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMYQfoNdlh+M83Lt7SBxUoBVo0IXtRCIh5Lt7HK9nWC"
+            LISTEN: /beszel_socket/beszel.sock
+            TOKEN: "a0af5-51447427-9b9b4-707fb22e"
+            HUB_URL: "http://host.containers.internal:8090"
+            DOCKER_HOST: "unix:///run/user/1000/podman/podman.sock"
+        Service:
+          Restart: always
+        Install:
+          WantedBy: default.target
+
+  pre_tasks:
+    - name: Create directories (because the auto-creation in the role is broken)
+      ansible.builtin.file:
+        state: directory
+        path: "{{ item }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+      loop:
+        - "/home/damien/beszel/data"
+        - "/home/damien/beszel/socket"
+        - "/home/damien/beszel/agent_data"
+
+  roles:
+    - linux-system-roles.podman
+
+# podman run -d --name beszel \
+#   --restart=unless-stopped \
+#   -v ./data:/beszel_data:z \
+#   -v ./socket:/beszel_socket:z \
+#   -p 8090:8090 \
+#   --security-opt label=type:container_runtime_t \
+#   docker.io/henrygd/beszel
+
+# podman run -d --name beszel-agent \
+#   --network host \
+#   --restart unless-stopped \
+#   -v /run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock:ro \
+#   -v ./agent_data:/var/lib/beszel-agent:z \
+#   -v ./socket:/beszel_socket:z \
+#   -e KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMYQfoNdlh+M83Lt7SBxUoBVo0IXtRCIh5Lt7HK9nWC" \
+#   -e LISTEN=/beszel_socket/beszel.sock \
+#   -e TOKEN="a0af5-51447427-9b9b4-707fb22e" \
+#   -e HUB_URL="http://host.containers.internal:8090" \
+#   -e DOCKER_HOST="unix:///run/user/1000/podman/podman.sock" \
+#   --security-opt label=type:container_runtime_t \
+#   docker.io/henrygd/beszel-agent

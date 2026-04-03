@@ -1,0 +1,9 @@
+[lab]
+;jakku
+;mustafar
+geonosis ansible_host=10.11.50.30 ansible_user=damien
+
+[container_host]
+geonosis
+
+;[vm_host]

@@ -1,0 +1,38 @@
+---
+- name: Setup certwarden container
+  hosts: container_host
+
+  vars:
+    container_name: "certwarden"
+    image: "ghcr.io/gregtwallace/certwarden:latest"
+    ports:
+      - host: 4050
+        container: 4050
+        proto: tcp
+        firewall: true
+      - host: 4055
+        container: 4055
+        proto: tcp
+        firewall: true
+      - host: 4060
+        container: 4060
+        proto: tcp
+        firewall: true
+      - host: 4065
+        container: 4065
+        proto: tcp
+        firewall: true
+      - host: 4070
+        container: 4070
+        proto: tcp
+        firewall: true
+    volumes:
+      - host_dir_name: "data"
+        container_mnt: "/app/data"
+
+  tasks:
+    - name: Setup certwarden container
+      ansible.builtin.include_role:
+        name: container_service_setup
+
+...

@@ -38,3 +38,6 @@ context/*
 .ansible/*
 ansible-navigator.log
 ansible.cfg
+
+# ---> pyenv
+.python-version
